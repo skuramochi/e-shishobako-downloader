@@ -76,12 +76,13 @@ async function loadAttachedFile(outlist, sIntFileId, fileName) {
 		xmlPreviewFlg: 0
 	};
 	const body = Object.keys(payload).map((key) => key + "=" + encodeURIComponent(payload[key])).join("&");
-	console.log('downloading PDF file: %s.', fileName);
-	const pdf = await fetch('https://plus.e-shishobako.ne.jp/dp-uw/v1/DPAW010501020', {method: 'POST', headers, body}).then(response => response.blob());
-	if (!(await pdf.text()).startsWith('%PDF-')) {
-		console.error('not PDF.');
+	console.log('downloading file: %s.', fileName);
+	const data = await fetch('https://plus.e-shishobako.ne.jp/dp-uw/v1/DPAW010501020', {method: 'POST', headers, body}).then(response => response.blob());
+	const header = await data.text();
+	if (!header.startsWith('%PDF-') && !header.startsWith('<?xml ')) {
+		console.error('attached file is not PDF or XML.');
 	}
-	return pdf;
+	return data;
 }
 
 const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
@@ -102,12 +103,14 @@ async function dl(from, to) {
 	for (let i = 0; i < list['outlist'].length; i++) {
 		let outlist = list['outlist'][i];
 		let detail = await loadKofuDetail(outlist);
-		let fileName = outlist['kofuHms'] + '-' + outlist['sName'] + '-' + detail['kofuDetailList'][0]['sOriFileId'];
-		let pdf = await loadAttachedFile(outlist, detail['kofuDetailList'][0]['sIntFileId'], fileName);
-//		let dt = new Date(outlist['kofuHms'].replace(/^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)$/, '$4:$5:00 $2/$3/$1'));
-		let dt = new Date(outlist['kofuHms'].replace(/^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)$/, '$1-$2-$3T$4:$5:00.000Z'));	// ISO 8601 UTC
-		folder.file(fileName, pdf, { date: dt });
-		await sleep(1000);
+		for (let j = 0; j < detail['kofuDetailList'].length; j++) {
+			let fileName = outlist['kofuHms'] + '-' + outlist['sName'] + '-' + detail['kofuDetailList'][j]['sOriFileId'];
+			let data = await loadAttachedFile(outlist, detail['kofuDetailList'][j]['sIntFileId'], fileName);
+//			let dt = new Date(outlist['kofuHms'].replace(/^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)$/, '$4:$5:00 $2/$3/$1'));
+			let dt = new Date(outlist['kofuHms'].replace(/^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)$/, '$1-$2-$3T$4:$5:00.000Z'));	// ISO 8601 UTC
+			folder.file(fileName, data, { date: dt });
+			await sleep(1000);
+		}
 	}
 
 	console.log('generating zip file.');
