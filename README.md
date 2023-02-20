@@ -1,6 +1,6 @@
 # e-私書箱ダウンローダー
 
-e-私書箱のPDFを一括でダウンロードするためのスクリプトです。
+e-私書箱のPDF・XMLを一括でダウンロードするためのスクリプトです。
 
 SBI証券の電子書面交付サービスが、POSTUBからe-私書箱に移行し、[postub_downloader](https://github.com/shingo45endo/postub_downloader)
 が使えなくなってしまったので、作成しました。
@@ -11,7 +11,7 @@ SBI証券の電子書面交付サービスが、POSTUBからe-私書箱に移行
 - await dl(from, to);   // from, to: 交付期間（開始日、終了日）をYYYYMMDDで指定
 
 ## 動作確認:
-SBI証券、Windows10のChromeでのみ動作確認
+SBI証券・LINE証券、Windows10のChromeでのみ動作確認
 
 ## 問題点・TODO
 - 100件以上ある場合は、交付期間を適当に分割してください。
